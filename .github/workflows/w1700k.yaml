@@ -1,4 +1,4 @@
-name: W1700k UBI Installer
+name: W1700k UBI Installer (ARM) w custom payload
 
 on:
   workflow_dispatch:
@@ -17,7 +17,7 @@ env:
 jobs:
   check_commits:
     name: Check Commits
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-24.04-arm
     outputs:
       latest_commit_sha: ${{ steps.get_sha.outputs.latest_commit_sha }}
     steps:
@@ -36,7 +36,7 @@ jobs:
   build:
     name: Build OpenWrt installer images
     needs: [check_commits]
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-24.04-arm
     steps:
       - name: Checkout installer repository
         uses: actions/checkout@main
@@ -46,10 +46,9 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt update
-          sudo apt upgrade -y
           sudo apt install -y \
             build-essential clang flex bison g++ gawk \
-            gcc-multilib g++-multilib gettext git libncurses5-dev libssl-dev \
+            gcc g++ gettext git libncurses5-dev libssl-dev \
             python3-setuptools rsync swig unzip zlib1g-dev file wget curl
 
       - name: Checkout OpenWrt repository
@@ -90,7 +89,6 @@ jobs:
           cd openwrt
           mkdir -p files/installer
           cp "bin/targets/${{ env.TARGET_SUBTARGET }}/${{ env.RECOVERY_IMAGE }}" "files/installer/"
-          cp "bin/targets/${{ env.TARGET_SUBTARGET }}/${{ env.SYSUPGRADE_IMAGE }}" "files/installer/"
           rsync -a ../installer-repo/files/ files/
           chmod +x \
             files/installer/install.sh \
